@@ -1,58 +1,96 @@
-
-const Expense=require('../model1/expense');
-
+const Product = require('../models/product');
 
 
- exports.addUser=(req,res,next)=>{
-    const expense=req.body.expense;
-    const category=req.body.category;
-    const description=req.body.description;
-    Expense.create({
-        expense:expense,
-        category:category,
-        description:description
-    }).then((result)=>{
-        res.json(result);
+exports.getAddProduct = (req, res, next) => {
+  res.render('admin/edit-product', {
+    pageTitle: 'Add Product',
+    path: '/admin/add-product',
+    editing:false
+  });
+};
+
+exports.postAddProduct = (req, res, next) => {
+  const title = req.body.title;
+  const imageUrl = req.body.imageUrl;
+  const price = req.body.price;
+  const description = req.body.description;
+  req.user.createProduct({
+    title:title,
+    price:price,
+    imageUrl:imageUrl,
+    description:description,
+    userId:req.user.id
+  })
+  .then(result=>{
+    res.redirect('/admin/products')
+  })
+  .catch(err=>console.log(err))
+};
+
+exports.getEditProduct = (req, res, next) => {
+  const editMode=req.query.edit;
+  if(!editMode)
+  {
+    return res.redirect('/')
+  }
+  const prodId=req.params.productId;
+  req.user.getProducts({where :{id:prodId}})
+  //Product.findByPk(prodId)
+  .then((products)=>{
+    const product=products[0];
+      if(!product)
+      {
+        return res.redirect('/');
+      }
+      res.render('admin/edit-product',{
+        pageTitle: 'Edit Product',
+        path: '/admin/edit-product',
+       editing:editMode,
+       product:product
+      });
     })
-    .catch(err=>console.log(err));
+};
+
+exports.postEditProduct=(req,res,next)=>{
+  
+   const prodId=req.body.productId;
+  const updatedtitle=req.body.title;
+  const updatedprice=req.body.price;
+  const updatedimageUrl=req.body.imageUrl;
+  const updatedDesc=req.body.description;
+  Product.findByPk(prodId)
+  .then(product=>{
+    product.title=updatedtitle;
+    product.price=updatedprice;
+    product.description=updatedDesc;
+    product.imageUrl=updatedimageUrl;
+    return product.save();
+  }).then(result=>{
+    console.log('UPDATED PRODUCT');
+    res.redirect('/admin/products')
+  })
+  .catch(err=>console.log(err))
+     
+
 }
 
-exports.getUsers=(req,res,next)=>{
-    Expense.findAll().then(products=>{
-      res.json(products);
-    })
-    .catch(err=>{console.log(err)})
-}
 
-exports.deleteUserById=(req,res,next)=>{
-    const prodId=req.params.id;
-    Expense.destroy({where :{id:prodId}})
-    .then()
-    .catch(err=>{console.log(err)})
+exports.getDeleteProduct=(req,res,next)=>{
+   const prodId=req.params.productId;
+         Product.destroy({where: {id:prodId}}).then(()=>{
+          res.redirect('/admin/products');
+         }).catch(err=>console.log(err));       
 }
 
 
-exports.geteditUser=(req,res,next)=>{
-    const prodId=req.params.id;
-    Expense.findByPk(prodId).then((user)=>{
-        res.json(user);
-       res.redirect(`/admin/edit-expense`);
-    }).catch(err=>console.log(err));
-}
-
-exports.posteditUser=(req,res,next)=>{
-
-    const prodId=req.params.id;
-    Expense.findByPk(prodId)
-    .then((user)=>{
-        user.expense=req.body.expense;
-        user.category=req.body.category;
-        user.description=req.body.description;
-        return user.save();
-    })
-    .then((result)=>{
-       res.json(result);
-        console.log('User Edited');
-    })
-    .catch(err=>console.log(err));
-}
+exports.getProducts = (req, res, next) => {
+  req.user
+  .getProducts()
+  .then((products)=>{
+    res.render('admin/products', {
+      prods: products,
+      pageTitle: 'Admin Products',
+      path: '/admin/products'
+    });
+  }).catch(err=>console.log(err));
+};
