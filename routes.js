@@ -33,7 +33,8 @@ const requestHandler=(req,res)=>{
     res.setHeader('Location','/');
     return res.end();
   });
-    })
+  
+})
    }
    else{
     res.setHeader('Content-Type','text/html');
@@ -43,7 +44,6 @@ const requestHandler=(req,res)=>{
     res.write('</html>');
     res.end();
    } 
-  
 }
 //module.exports = requestHandler;
 // module.exports={
