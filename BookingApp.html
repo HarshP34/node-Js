@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My First</title>
+</head>
+<body>
+    <h1>Book Appointment App</h1>
+    <form id="my-form">
+        <h3>Add User</h3>
+    <label for="name">Name:</label><br>
+    <input type="text" id="name" name="name"><br>
+    <label for="email">Email Id:</label><br>
+    <input type="email" id="email" name="email"><br>
+    <label for="phone">Phone Number:</label><br>
+    <input type="tel" id="phone" name="phone"><br><br>
+    <input type="submit" class="btn" value="Submit"> 
+</form>
+<ul id="users"></ul>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.1.2/axios.min.js"></script>
+<script>
+    const name=document.getElementById('name');
+const myForm=document.getElementById('my-form');
+const userList=document.getElementById('users');
+const phoneNumber=document.getElementById('phone');
+const email=document.getElementById('email');
+
+
+myForm.addEventListener('submit',addUser);
+function addUser(e)
+{
+    e.preventDefault();
+    const myObj={
+        name:name.value,
+        phoneNumber:phoneNumber.value,
+        email:email.value
+    }
+abc();
+    async function abc()
+    {
+       await axios.post('http://localhost:3000/admin/user',myObj);
+       shownonScreen(myObj);
+      const res =await axios.get('http://localhost:3000/admin/user')
+    }   
+}
+
+document.addEventListener('DOMContentLoaded',reload)
+function reload(e){
+    e.preventDefault();
+    axios.get('http://localhost:3000/admin/user').then((res)=>{
+        res.data.forEach((user)=>{
+            shownonScreen(user);
+        })
+    })
+}
+
+function shownonScreen(data)
+{
+ var li=document.createElement('li');
+ li.className='item';
+ li.appendChild(document.createTextNode(`${data.name}-${data.email}-${data.phoneNumber}`));
+ var deleteBtn=document.createElement('button');
+ deleteBtn.className='btn';
+ deleteBtn.appendChild(document.createTextNode('delete'));
+ li.appendChild(deleteBtn);
+ var editBtn=document.createElement('button');
+ editBtn.className='btn';
+ editBtn.appendChild(document.createTextNode('edit'));
+ li.appendChild(editBtn);
+ userList.appendChild(li);
+userList.addEventListener('click',deleteuser);
+function deleteuser(e)
+{
+    if(e.target==deleteBtn)
+    {
+        let li=e.target.parentElement;
+        axios.get('http://localhost:3000/admin/user').then((res)=>{
+            for(var i=0;i<res.data.length;i++)
+            {
+                if(li.innerHTML.indexOf(res.data[i].email)!=-1)
+                {
+                    axios.get(`http://localhost:3000/admin/user/${res.data[i].id}`);
+                }
+            }
+        })
+        userList.removeChild(li);
+    }
+}
+
+
+}
+
+
+</script>
+</body>
+</html>
