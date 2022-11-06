@@ -17,9 +17,12 @@ const Product = require('./models/product');
 const User = require('./models/user');
 const Cart=require('./models/cart');
 const CartItem=require('./models/cart-item');
+const Order=require('./models/order');
+const OrderDetail=require('./models/order-detail');
+const cors=require('cors');
+app.use(cors());
 
-
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use((req,res,next)=>{
    User.findByPk(1)
@@ -42,8 +45,17 @@ User.hasOne(Cart);
 Cart.belongsTo(User);
 Cart.belongsToMany(Product,{through:CartItem});
 Product.belongsToMany(Cart,{through:CartItem});
+User.hasMany(Order);
+Order.belongsTo(User);
+Order.belongsToMany(Product,{through:OrderDetail});
+Product.belongsToMany(Order,{through:OrderDetail});
 
-sequelize.sync().then(result=>{
+
+
+sequelize
+//.sync({force:true})
+.sync()
+.then(result=>{
   return User.findByPk(1);
 })
 .then(user=>{
@@ -54,12 +66,8 @@ sequelize.sync().then(result=>{
    return user
 }).then(user=>{
    //console.log(user);
-   user.createCart()
-   .then(cart=>{
-      app.listen(3000);
-   })
+   app.listen(3000);
 
-  
 })
 .catch(err=>console.log(err));
 
